@@ -1,112 +1,118 @@
-import os
+import numpy as np
+import faiss
+import pickle
 import sqlite3
-import logging
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+from langchain.vectorstores import FAISS
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain.schema import Document
 
 class IndexBuilder:
     def __init__(self, data_path, embedding_db_path, desired_columns=None):
-        # Ensure the data path exists
-        assert os.path.exists(data_path), f"Data path does not exist: {data_path}"
-        
         if desired_columns is None:
             desired_columns = ['id', 'title', 'genres', 'overview', 'popularity', 'vote_average', 'release_date']
         
         self.data_path = data_path
         self.embedding_db_path = embedding_db_path
         
-        # Set up logging
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-        
-        # Load data
         self.movies_data = self.load_and_preprocess_data(desired_columns)
         
-        # Initialize Sentence Transformer model
-        self.model = SentenceTransformer('sentence-transformers/all-MiniLM-L12-v2')
-        
-        # Set up SQLite connection
         self.conn = sqlite3.connect(self.embedding_db_path)
         self.c = self.conn.cursor()
-        self.setup_embedding_db()
-
+    
     def load_and_preprocess_data(self, desired_columns):
         """Load and preprocess the movie data."""
-        logging.info("Loading and preprocessing data...")
         movies_data_raw = pd.read_csv(self.data_path)
-        assert not movies_data_raw.empty, "Loaded data is empty"
-        
         movies_data_filtered = movies_data_raw[desired_columns]
         movies_data = self.preprocess(movies_data_filtered)
         return movies_data
     
     def preprocess(self, movies_data):
         """Preprocess the movie data."""
-        logging.info("Preprocessing data...")
         movies_data = movies_data.dropna(subset=['genres', 'overview', 'title'])
-        assert not movies_data.empty, "Preprocessed data is empty after dropping NA values"
-        
         movies_data = movies_data.fillna('N/A')
         movies_data['overview_original'] = movies_data['overview']  # Preserve original overview before chunking
         return movies_data
-    
-    def setup_embedding_db(self):
-        """Set up the SQLite database to store embeddings."""
-        logging.info("Setting up the SQLite database...")
-        self.c.execute('''
-            CREATE TABLE IF NOT EXISTS embeddings_progress (
-                id INTEGER PRIMARY KEY,
-                embedding BLOB
-            )
-        ''')
-        self.conn.commit()
 
-    def save_embedding_to_db(self, movie_id, embedding):
-        """Save an embedding to the SQLite database."""
-        self.c.execute('''
-            INSERT INTO embeddings_progress (id, embedding)
-            VALUES (?, ?)
-        ''', (movie_id, embedding))
-        self.conn.commit()
-
-    def get_processed_ids(self):
-        """Get the IDs of movies for which embeddings have already been generated."""
-        self.c.execute('SELECT id FROM embeddings_progress')
-        return set(row[0] for row in self.c.fetchall())
-
-    def generate_embeddings(self, chunk_size=100):
-        """Generate embeddings in chunks and save progress."""
-        assert chunk_size > 0, "Chunk size must be greater than zero"
+    def load_embeddings_from_db(self):
+        """Load embeddings from the SQLite database and merge them into the DataFrame."""
+        self.c.execute('SELECT id, embedding FROM embeddings_progress')
+        embeddings_data = self.c.fetchall()
         
-        processed_ids = self.get_processed_ids()
-        total_rows = len(self.movies_data)
-        logging.info(f"Starting embedding generation for {total_rows} movies...")
+        embeddings_df = pd.DataFrame(embeddings_data, columns=['id', 'embedding'])
+        
+        self.movies_data = pd.merge(self.movies_data, embeddings_df, on='id', how='left')
 
-        for start in range(0, total_rows, chunk_size):
-            end = min(start + chunk_size, total_rows)
-            chunk = self.movies_data.iloc[start:end]
+        self.movies_data['embedding'] = self.movies_data['embedding'].apply(lambda x: np.frombuffer(x, dtype=np.float32))
+    
+    def aggregate_embeddings(self):
+        """Aggregate embeddings and other metadata by title and genre."""
+        aggregated_df = self.movies_data.groupby(['title', 'genres']).agg({
+            'embedding': lambda x: np.mean(np.vstack(x), axis=0),
+            'overview_original': ' '.join, 
+            'popularity': 'mean',
+            'vote_average': 'mean',
+            'release_date': lambda x: x.iloc[0]  # You can choose how to aggregate or keep the first entry
+        }).reset_index()
+        
+        return aggregated_df
 
-            for _, row in chunk.iterrows():
-                movie_id = row['id']
-                if movie_id not in processed_ids:
-                    logging.info(f"Generating embedding for movie ID: {movie_id}")
-                    try:
-                        embedding = self.model.encode(row['overview'], show_progress_bar=False)
-                        assert embedding is not None, f"Embedding generation failed for movie ID: {movie_id}"
-                        self.save_embedding_to_db(movie_id, embedding)
-                    except Exception as e:
-                        logging.error(f"Error generating embedding for movie ID: {movie_id}: {e}")
+    def build_faiss_index(self, aggregated_df):
+        """Build and persist the FAISS index, document store, and index_to_docstore_id mapping."""
+        embeddings_array = np.vstack(aggregated_df['embedding'].values).astype('float32')
 
-        logging.info("Completed embedding generation.")
+        dimension = embeddings_array.shape[1]  
+        faiss_index = faiss.IndexFlatL2(dimension)
+        faiss_index.add(embeddings_array)
+
+        docs = [
+            Document(
+                page_content=row['title'],
+                metadata={
+                    'title': row['title'],
+                    'genre': row['genres'],
+                    'popularity': row['popularity'],
+                    'vote_average': row['vote_average'],
+                    'release_date': row['release_date'],
+                    'overview': row['overview_original']
+                }
+            )
+            for _, row in aggregated_df.iterrows()
+        ]
+
+        docstore = InMemoryDocstore({str(i): doc for i, doc in enumerate(docs)})
+
+        index_to_docstore_id = {i: str(i) for i in range(len(docs))}
+
+        vector_store = FAISS(
+            index=faiss_index,
+            docstore=docstore,
+            index_to_docstore_id=index_to_docstore_id,
+            embedding_function=None  
+        )
+
+        faiss.write_index(faiss_index, "faiss_index.bin")
+
+        with open("docstore.pkl", "wb") as f:
+            pickle.dump(docstore, f)
+
+        with open("index_to_docstore_id.pkl", "wb") as f:
+            pickle.dump(index_to_docstore_id, f)
 
     def close(self):
         """Close the SQLite connection."""
-        logging.info("Closing SQLite connection...")
         self.conn.close()
 
 if __name__ == "__main__":
-    data_path = '/Data/movies.csv'
-    embedding_db_path = '/Data/embeddings.db'
+    data_path = 'Data/movies.csv'
+    embedding_db_path = 'Data/embeddings.db'
 
     index_builder = IndexBuilder(data_path, embedding_db_path)
-    index_builder.generate_embeddings(chunk_size=100)
+    
+    index_builder.load_embeddings_from_db()
+    aggregated_df = index_builder.aggregate_embeddings()
+    index_builder.build_faiss_index(aggregated_df)
+    
     index_builder.close()
+    
+

@@ -3,7 +3,7 @@ import faiss
 import pickle
 import sqlite3
 import pandas as pd
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain.schema import Document
 

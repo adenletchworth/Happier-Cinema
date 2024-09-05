@@ -6,6 +6,7 @@ import pandas as pd
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain.schema import Document
+import os
 
 class IndexBuilder:
     def __init__(self, data_path, embedding_db_path, desired_columns=None):
@@ -52,17 +53,27 @@ class IndexBuilder:
             'overview_original': ' '.join, 
             'popularity': 'mean',
             'vote_average': 'mean',
-            'release_date': lambda x: x.iloc[0]  # You can choose how to aggregate or keep the first entry
+            'release_date': lambda x: x.iloc[0]  
         }).reset_index()
         
         return aggregated_df
 
-    def build_faiss_index(self, aggregated_df):
+    def build_faiss_index(self, aggregated_df, path='Index/'):
         """Build and persist the FAISS index, document store, and index_to_docstore_id mapping."""
+
+        os.makedirs(path, exist_ok=True)
+
         embeddings_array = np.vstack(aggregated_df['embedding'].values).astype('float32')
 
-        dimension = embeddings_array.shape[1]  
-        faiss_index = faiss.IndexFlatL2(dimension)
+        dimension = embeddings_array.shape[1]
+        nlist = 100  # Number of clusters
+
+        quantizer = faiss.IndexFlatL2(dimension)
+
+        faiss_index = faiss.IndexIVFFlat(quantizer, dimension, nlist, faiss.METRIC_L2)
+
+        faiss_index.train(embeddings_array)
+
         faiss_index.add(embeddings_array)
 
         docs = [
@@ -91,12 +102,12 @@ class IndexBuilder:
             embedding_function=None  
         )
 
-        faiss.write_index(faiss_index, "faiss_index.bin")
+        faiss.write_index(faiss_index, os.path.join(path, "faiss_index.bin"))
 
-        with open("docstore.pkl", "wb") as f:
+        with open(os.path.join(path, "docstore.pkl"), "wb") as f:
             pickle.dump(docstore, f)
 
-        with open("index_to_docstore_id.pkl", "wb") as f:
+        with open(os.path.join(path, "index_to_docstore_id.pkl"), "wb") as f:
             pickle.dump(index_to_docstore_id, f)
 
     def close(self):

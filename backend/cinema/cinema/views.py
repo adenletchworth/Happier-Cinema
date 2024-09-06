@@ -14,14 +14,14 @@ def search_movies(request):
         docstore_id_path = os.path.join(settings.BASE_DIR, 'cinema', 'index', 'index_to_docstore_id.pkl')
 
         search_instance = IndexSearch(index_path, docstore_path, docstore_id_path)
-        cache.set('search_instance', search_instance, timeout=None)  # Adjust timeout as needed or use default Django cache timeout
+        cache.set('search_instance', search_instance, timeout=None)  
 
     query = request.GET.get('query', '')
     genre_filter = request.GET.get('genre', None)
     min_vote_average = float(request.GET.get('min_vote_average', '0'))
     after_year = int(request.GET.get('after_year', '0')) if request.GET.get('after_year') else None
     before_year = int(request.GET.get('before_year', '0')) if request.GET.get('before_year') else None
-    k = int(request.GET.get('k', '5'))
+    k = int(request.GET.get('k', '6'))
 
     # Perform the search
     results = search_instance.search(

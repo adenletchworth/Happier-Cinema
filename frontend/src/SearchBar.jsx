@@ -12,7 +12,7 @@ const SearchBar = ({ query, setQuery, onSearch }) => {
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 w-full">
       <input
         type="text"
         value={query}

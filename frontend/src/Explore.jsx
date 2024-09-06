@@ -41,8 +41,8 @@ const Explore = () => {
   };
 
   return (
-    <main className="flex-1 max-w-7xl mx-auto px-4 py-6">
-      <SearchBar query={query} setQuery={setQuery} onSearch={handleSearch} />
+    <main className="flex-1 max-w-full mx-64 px-4 py-6">
+      <SearchBar className='w-full' query={query} setQuery={setQuery} onSearch={handleSearch} />
       <div className="flex flex-col md:flex-row md:space-x-4 mt-6">
         <Filter
           genre={genre}

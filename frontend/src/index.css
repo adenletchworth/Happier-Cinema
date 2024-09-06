@@ -56,6 +56,8 @@
     .search-box:focus {
         @apply text-gray-400; 
     }
-    
-    
+
+    .card {
+        @apply bg-neutral-light text-neutral-darkest font-medium border border-neutral-dark rounded-md shadow-md overflow-hidden;
+    }
 }

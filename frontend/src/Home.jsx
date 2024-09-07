@@ -1,19 +1,81 @@
 import React from 'react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react'; 
+
+import 'swiper/css'; 
+import 'swiper/css/navigation'; 
+import 'swiper/css/pagination'; 
+
+import movie1 from './assets/movie1.jpg';
+import movie2 from './assets/movie2.jpg';
+import movie3 from './assets/movie3.jpg';
+import movie4 from './assets/movie4.jpg';
+import movie5 from './assets/movie5.jpg';
+import movie6 from './assets/movie6.jpg';
+import movie7 from './assets/movie7.jpg';
+import movie8 from './assets/movie8.jpg';
 
 const Home = ({ setCurrentView }) => {
+  const movies = [
+    movie1,
+    movie2,
+    movie3,
+    movie4,
+    movie5,
+    movie6,
+    movie7,
+    movie8
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="max-w-2xl text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-6">Welcome to Happier Cinema</h2>
-        <p className="text-gray-700 text-lg mb-8">
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Error blanditiis est adipisci eum qui ipsam, ea fugiat necessitatibus dolores libero voluptatum quaerat aspernatur repudiandae. Amet mollitia facilis, fugit doloremque a qui! Nobis, aut. Cum suscipit quae, totam sequi pariatur nulla fugiat, ipsa iusto assumenda eveniet voluptates dolores qui, atque alias.
+    <div className="flex flex-1 flex-col items-center justify-center min-h-8xl bg-neutral-lightest w-full max-w-6xl mx-auto px-4 mt-2">
+      <div className="max-w-5xl text-center space-y-3 bg-white rounded-lg shadow-lg p-8 border border-neutral-dark w-full">
+        <h1 className="text-5xl font-extrabold text-primary-dark">
+          Welcome to <span className="text-secondary">Happier Cinema</span>
+        </h1>
+        <p className="text-lg text-neutral-darkest">
+          Discover movies that match your taste, dive deep into our recommendations, and find your next favorite film.
         </p>
-        <button 
-          onClick={() => setCurrentView('explore')}
-          className="px-8 py-3 bg-blue-600 text-white text-lg font-semibold rounded-md hover:bg-blue-500"
-        >
-          Try Now
-        </button>
+
+        <div className="flex justify-center mt-6 mb-8 px-12"> 
+          <Swiper
+            spaceBetween={20}
+            slidesPerView={3}
+            autoplay={{
+              delay: 2500,
+              disableOnInteraction: false,
+            }}
+            pagination={{ clickable: true }}
+            navigation={true}  
+            loop={true}
+            modules={[Autoplay, Pagination, Navigation]}  
+            className="w-full max-w-5xl"  
+          >
+            {movies.map((movie, index) => (
+              <SwiperSlide key={index}>
+                <img 
+                  src={movie} 
+                  alt={`Movie ${index + 1}`}
+                  className="w-full h-auto rounded-lg shadow-lg"
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        <p className="text-neutral-darkest text-lg">
+          Explore a variety of genres and titles curated just for you. Whether you love classics, thrillers, or the latest blockbusters, Happier Cinema is here to guide you.
+        </p>
+        <div className="mt-8">
+          <button 
+            onClick={() => setCurrentView('explore')}
+            className="px-10 py-4 btn"
+          >
+            Start Exploring
+          </button>
+        </div>
+        <p className="text-sm text-neutral-darkest mt-4">
+          No sign-up required. Jump straight in and start discovering.
+        </p>
       </div>
     </div>
   );

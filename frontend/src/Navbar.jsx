@@ -1,33 +1,36 @@
 import React from 'react';
+import { HiHome, HiMiniQuestionMarkCircle, HiMagnifyingGlass } from "react-icons/hi2";
 
 const Navbar = ({ setCurrentView }) => {
   return (
-    <nav className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-        <h1 
-          className="text-3xl font-bold text-gray-900 cursor-pointer"
-          onClick={() => setCurrentView('home')}
-        >
-          Happier Cinema
-        </h1>
-        <div className="space-x-4">
-          <span 
-            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+    <nav className="bg-neutral-light shadow">
+      <div className="max-w-full mx-32 px-4 py-6 flex items-center">
+        <div className="flex-shrink-0">
+          <h1 
+            className="text-3xl font-bold text-secondary cursor-pointer"
             onClick={() => setCurrentView('home')}
           >
-            Home
+            Happier Cinema
+          </h1>
+        </div>
+        <div className="icon-flex ml-auto flex space-x-4">
+          <span 
+            className="icon"
+            onClick={() => setCurrentView('home')}
+          >
+            <HiHome />
           </span>
           <span 
-            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+            className="icon"
             onClick={() => setCurrentView('explore')}
           >
-            Explore
+            <HiMagnifyingGlass />
           </span>
-          <span 
-            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+          <span  
+            className="icon"
             onClick={() => setCurrentView('about')}
           >
-            About
+            <HiMiniQuestionMarkCircle />
           </span>
         </div>
       </div>

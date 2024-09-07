@@ -60,4 +60,13 @@
     .card {
         @apply bg-neutral-light text-neutral-darkest font-medium border border-neutral-dark rounded-md shadow-md overflow-hidden;
     }
+
+    .icon {
+        @apply text-primary cursor-pointer hover:text-secondary focus:text-primary-light transition-colors duration-300 ease-in-out p-2 rounded-full hover:bg-secondary-dark hover:bg-opacity-10 text-3xl;
+      }
+
+    .icon-flex {
+        @apply flex items-center justify-center space-x-16;
+    }
+      
 }

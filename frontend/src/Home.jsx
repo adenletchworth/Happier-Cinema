@@ -29,18 +29,22 @@ const Home = ({ setCurrentView }) => {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center min-h-8xl bg-neutral-lightest w-full max-w-6xl mx-auto px-4 mt-2">
-      <div className="max-w-5xl text-center space-y-3 bg-white rounded-lg shadow-lg p-8 border border-neutral-dark w-full">
-        <h1 className="text-5xl font-extrabold text-primary-dark">
+      <div className="max-w-full sm:max-w-5xl text-center space-y-3 bg-white rounded-lg shadow-lg p-4 sm:p-8 border border-neutral-dark w-full">
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-primary-dark">
           Welcome to <span className="text-secondary">Happier Cinema</span>
         </h1>
-        <p className="text-lg text-neutral-darkest">
+        <p className="text-base sm:text-lg text-neutral-darkest">
           Discover movies that match your taste, dive deep into our recommendations, and find your next favorite film.
         </p>
 
-        <div className="flex justify-center mt-6 mb-8 px-12"> 
+        <div className="flex justify-center mt-6 mb-8 px-2 sm:px-12"> 
           <Swiper
-            spaceBetween={20}
-            slidesPerView={3}
+            spaceBetween={10} // Reduced space for mobile screens
+            slidesPerView={1} // Default to 1 slide on mobile
+            breakpoints={{
+              640: { slidesPerView: 2, spaceBetween: 10 }, // 2 slides on small screens
+              1024: { slidesPerView: 3, spaceBetween: 20 } // 3 slides on larger screens
+            }}
             autoplay={{
               delay: 2500,
               disableOnInteraction: false,
@@ -49,7 +53,7 @@ const Home = ({ setCurrentView }) => {
             navigation={true}  
             loop={true}
             modules={[Autoplay, Pagination, Navigation]}  
-            className="w-full max-w-5xl"  
+            className="w-full max-w-full"  
           >
             {movies.map((movie, index) => (
               <SwiperSlide key={index}>
@@ -62,18 +66,18 @@ const Home = ({ setCurrentView }) => {
             ))}
           </Swiper>
         </div>
-        <p className="text-neutral-darkest text-lg">
+        <p className="text-neutral-darkest text-base sm:text-lg">
           Explore a variety of genres and titles curated just for you. Whether you love classics, thrillers, or the latest blockbusters, Happier Cinema is here to guide you.
         </p>
-        <div className="mt-8">
+        <div className="mt-4 sm:mt-8">
           <button 
             onClick={() => setCurrentView('explore')}
-            className="px-10 py-4 btn"
+            className="px-6 sm:px-10 py-3 sm:py-4 btn"
           >
             Start Exploring
           </button>
         </div>
-        <p className="text-sm text-neutral-darkest mt-4">
+        <p className="text-xs sm:text-sm text-neutral-darkest mt-4">
           No sign-up required. Jump straight in and start discovering.
         </p>
       </div>

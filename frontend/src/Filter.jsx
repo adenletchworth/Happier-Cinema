@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const Filter = ({ genre, setGenre, minCountAverage, setMinCountAverage, afterYear, setAfterYear, beforeYear, setBeforeYear, onSearch }) => {
   return (
-    <aside className="grid-default w-full md:w-1/4 mb-6 md:mb-0">
+    <aside className="w-full bg-white p-4 rounded-lg shadow-md">
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-3">Genres</h3>
         <select
           value={genre}
           onChange={(e) => setGenre(e.target.value)}
-          className="w-full h-12 px-4 border select-box"
+          className="w-full h-12 px-4 border rounded-md"
         >
-          <option value="" disabled>
-            Select a genre
-          </option>
+          <option value="" disabled>Select a genre</option>
           <option value="Adventure">Adventure</option>
           <option value="Animation">Animation</option>
           <option value="Family">Family</option>
@@ -42,14 +40,14 @@ const Filter = ({ genre, setGenre, minCountAverage, setMinCountAverage, afterYea
           value={afterYear}
           onChange={(e) => setAfterYear(e.target.value)}
           placeholder="From"
-          className="w-full h-12 px-4 border input-box mb-3"
+          className="w-full h-12 px-4 border rounded-md mb-3"
         />
         <input
           type="number"
           value={beforeYear}
           onChange={(e) => setBeforeYear(e.target.value)}
           placeholder="To"
-          className="w-full h-12 px-4 border input-box"
+          className="w-full h-12 px-4 border rounded-md"
         />
       </div>
 
@@ -62,13 +60,13 @@ const Filter = ({ genre, setGenre, minCountAverage, setMinCountAverage, afterYea
           placeholder="Rating (1-10)"
           min="1"
           max="10"
-          className="w-full h-12 px-4 border input-box"
+          className="w-full h-12 px-4 border rounded-md"
         />
       </div>
 
       <button 
         onClick={onSearch} 
-        className="w-full h-12 font-semibold btn"
+        className="w-full h-12 font-semibold bg-primary-light text-white rounded-md"
       >
         Apply
       </button>

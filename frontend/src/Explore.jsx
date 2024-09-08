@@ -41,9 +41,8 @@ const Explore = () => {
   };
 
   return (
-    <main className="flex-1 max-w-full mx-64 px-4 py-6">
-      <SearchBar className='w-full' query={query} setQuery={setQuery} onSearch={handleSearch} />
-      <div className="flex flex-col md:flex-row md:space-x-4 mt-6">
+    <main className="flex flex-col md:flex-row md:space-x-4 max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full md:w-1/3 mb-4 md:mb-0"> {/* Changed to 1/3 for wider filter */}
         <Filter
           genre={genre}
           setGenre={setGenre}
@@ -55,27 +54,29 @@ const Explore = () => {
           setBeforeYear={setBeforeYear}
           onSearch={handleSearch}
         />
-        <section className="w-full md:w-3/4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {movies.length > 0 ? (
-              movies.map((movie, index) => {
-                const parsedMovie = parseMovie(movie);
-                return (
-                  <Card
-                    key={index}
-                    title={parsedMovie.title}
-                    genre={parsedMovie.genre}
-                    year={parsedMovie.year}
-                    poster={null}
-                  />
-                );
-              })
-            ) : (
-              <p>No movies found</p>
-            )}
-          </div>
-        </section>
       </div>
+
+      <section className="w-full md:w-2/3"> {/* Adjusted to take up 2/3 of the space */}
+        <SearchBar query={query} setQuery={setQuery} onSearch={handleSearch} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {movies.length > 0 ? (
+            movies.map((movie, index) => {
+              const parsedMovie = parseMovie(movie);
+              return (
+                <Card
+                  key={index}
+                  title={parsedMovie.title}
+                  genre={parsedMovie.genre}
+                  year={parsedMovie.year}
+                  poster={null}
+                />
+              );
+            })
+          ) : (
+            <p>No movies found</p>
+          )}
+        </div>
+      </section>
     </main>
   );
 };

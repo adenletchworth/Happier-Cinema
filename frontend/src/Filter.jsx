@@ -66,7 +66,7 @@ const Filter = ({ genre, setGenre, minCountAverage, setMinCountAverage, afterYea
 
       <button 
         onClick={onSearch} 
-        className="w-full h-12 font-semibold bg-primary-light text-white rounded-md"
+        className="btn w-full h-12 font-semibold bg-primary-light text-white rounded-md"
       >
         Apply
       </button>
